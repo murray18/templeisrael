@@ -12,11 +12,13 @@ df <- read_sheet('https://docs.google.com/spreadsheets/d/1XBoWe9cJXfxpmZ3i5E4Hsx
 
 df$Type <- as.factor(df$Type)
 
-
+# Attribution to https://www.freepik.com
+# https://www.flaticon.com/authors/hqrloveq
+# https://www.flaticon.com/search/2?word=store&order_by=4
 icons <- iconList(
-  synagogue = makeIcon("assets/synagogue-solid.svg", iconWidth=25, iconHeight=25, className='synagogue'),
-  person = makeIcon("assets/person.png", iconWidth=25, iconHeight=25),
-  store = makeIcon("assets/store.jpeg", iconWidth=25, iconHeight=25)
+  synagogue = makeIcon("assets/icons/synagogue_5.png", iconWidth=45, iconHeight=45, className='synagogue'),
+  person = makeIcon("assets/icons/home.png", iconWidth=25, iconHeight=25),
+  store = makeIcon("assets/icons/store.png", iconWidth=25, iconHeight=25)
 )
 
 ui <- fluidPage(
@@ -37,6 +39,11 @@ ui <- fluidPage(
       selectize = TRUE,
     )
   ),
+  sidebarPanel(
+    textOutput("population"),
+    textOutput("stores"),
+    textOutput("synagogues")
+   )
 )
 
 server <- function(input, output, session) {
@@ -53,13 +60,27 @@ server <- function(input, output, session) {
   
   get_label_html <- function(Name, Occupation) {
     lapply(paste0(Name, "<br>", Occupation), htmltools::HTML)
-    #HTML(paste0("<br>", Name,"<br> Occupation: ", Name))
   }
+  
+  output$population <- renderText({
+    data = filtered_data()
+    paste0("Total Jewish Population: ", nrow(data[data$Type == 'person',]))
+  })
+  
+  output$stores <- renderText({
+    data = filtered_data()
+    paste0("Total Jewish Stores: ", nrow(data[data$Type == 'store',]))
+  })
+  
+  output$synagogues <- renderText({
+    data = filtered_data()
+    paste0("Total Synagogues: ", nrow(data[data$Type == 'synagogue',]))
+  })
   
   
   output$mymap <- renderLeaflet({
    leaflet() %>%
-      addProviderTiles(providers$CartoDB.Voyager,
+      addProviderTiles(providers$CartoDB.Positron,
                        options = providerTileOptions(noWrap = TRUE)) %>%
       fitBounds(min(df$Long), min(df$Lat), max(df$Long), max(df$Lat))
   })
