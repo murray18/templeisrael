@@ -6,7 +6,7 @@ library(googlesheets4)
 library(leaflet.extras)
 library(htmltools)
 
-
+googlesheets4::gs4_auth()
 
 df <- read_sheet('https://docs.google.com/spreadsheets/d/1XBoWe9cJXfxpmZ3i5E4HsxWBOrkQCoa1UU-ORNpQ-iI')
 
@@ -16,7 +16,7 @@ df$Type <- as.factor(df$Type)
 # https://www.flaticon.com/authors/hqrloveq
 # https://www.flaticon.com/search/2?word=store&order_by=4
 icons <- iconList(
-  synagogue = makeIcon("assets/icons/synagogue_5.png", iconWidth=45, iconHeight=45, className='synagogue'),
+  synagogue = makeIcon("assets/icons/synagogue_4.png", iconWidth=30, iconHeight=30, className='synagogue'),
   person = makeIcon("assets/icons/home.png", iconWidth=25, iconHeight=25),
   store = makeIcon("assets/icons/store.png", iconWidth=25, iconHeight=25)
 )
