@@ -14,31 +14,53 @@ df$Type <- as.factor(df$Type)
 
 
 icons <- iconList(
-  synagogue = makeIcon("assets/synagogue.png", iconWidth=25, iconHeight=25),
-  person = makeIcon("assets/person.png", iconWidth=25, iconHeight=25)
+  synagogue = makeIcon("assets/synagogue-solid.svg", iconWidth=25, iconHeight=25, className='synagogue'),
+  person = makeIcon("assets/person.png", iconWidth=25, iconHeight=25),
+  store = makeIcon("assets/store.jpeg", iconWidth=25, iconHeight=25)
 )
 
 ui <- fluidPage(
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+  ),
   leafletOutput("mymap"),
   sidebarPanel(
     sliderInput("year", "Years", min(df$Year), max(df$Year),
-                value = range(df$Year), step = 1
+                value = range(df$Year), step = 1, sep = ""
     ),
+    selectInput(
+      "occupation",
+      "Occupation",
+      unique(df$Occupation),
+      selected = NULL,
+      multiple = TRUE,
+      selectize = TRUE,
+    )
   ),
-  p(),
-  actionButton("recalc", "New points")
 )
 
 server <- function(input, output, session) {
   filtered_data <- reactive({
-    df[df$Year >= input$year[1] & df$Year <= input$year[2],]
+    data = df
+    if(!is.null(input$year)) {
+      data = data[(data$Year >= input$year[1] & df$Year <= input$year[2]),]
+    }
+    if(!is.null(input$occupation)) {
+      data = data[data$Occupation %in% input$occupation,]
+    }
+    data
   })
   
+  get_label_html <- function(Name, Occupation) {
+    lapply(paste0(Name, "<br>", Occupation), htmltools::HTML)
+    #HTML(paste0("<br>", Name,"<br> Occupation: ", Name))
+  }
   
   
   output$mymap <- renderLeaflet({
    leaflet() %>%
-      addTiles() %>%
+      addProviderTiles(providers$CartoDB.Voyager,
+                       options = providerTileOptions(noWrap = TRUE)) %>%
       fitBounds(min(df$Long), min(df$Lat), max(df$Long), max(df$Lat))
   })
   
@@ -46,7 +68,7 @@ server <- function(input, output, session) {
     data = filtered_data()
     leafletProxy("mymap", data = data) %>%
       clearMarkers() %>%
-      addMarkers(~Long, ~Lat, label = ~htmlEscape(Name), icon = ~icons[Type])
+      addMarkers(~Long, ~Lat, label = ~get_label_html(Name, Occupation), icon = ~icons[Type])
   })
 }
 
